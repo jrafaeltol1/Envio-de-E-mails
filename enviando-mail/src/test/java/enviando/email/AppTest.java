@@ -22,7 +22,7 @@ public class AppTest {
 	@org.junit.Test
 	public void testeEmail(){
 		try {
-			
+			/*Teste de alteração*/
 		Properties properties = new Properties();
 		properties.put("mail.smtp.auth", "true");/*Autorização*/
 		properties.put("mail.smtp.starttls", "true"); /*Autenticação*/
