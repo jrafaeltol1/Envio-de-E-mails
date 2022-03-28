@@ -39,7 +39,7 @@ public class AppTest {
 				                                            "Olá! Você está recebendo um E-mail", 
 				                                            stringBuilderTextoEmail.toString());
 		
-		enviaEmail.enviarEmail(true);
+		enviaEmail.enviarEmailAnexo(true);
 	}
 
 	

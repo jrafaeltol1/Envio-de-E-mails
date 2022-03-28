@@ -1,21 +1,27 @@
 package enviando.email;
 
+import java.awt.List;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.UnsupportedEncodingException;
-import java.util.Properties;
+import java.util.*;
 
+import javax.activation.DataHandler;
 import javax.mail.Address;
 import javax.mail.Authenticator;
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.Multipart;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
+import javax.mail.util.ByteArrayDataSource;
 
 import com.itextpdf.text.Document;
 import com.itextpdf.text.Paragraph;
@@ -38,7 +44,7 @@ public class ObjetoEnviaEmail {
 		this.listaDestinatarios = listaDestinatario;
 	}
 	
-	public void enviarEmail(boolean envioHtml) throws Exception {
+	public void enviarEmailAnexo(boolean envioHtml) throws Exception {
 	
 	Properties properties = new Properties();
 	properties.put("mail.smtp.ssl.trust", "*");/*Autenticacão SSL*/
@@ -65,18 +71,58 @@ public class ObjetoEnviaEmail {
 	message.setRecipients(Message.RecipientType.TO, toUser);/*Email de destino*/
 	message.setSubject(assunto);/*Assunto do e-mail*/
 	
+	
+	
+	/*Parte 1 do e-mail que é o texto e a descrição do e-mail*/
+	MimeBodyPart corpoEmail = new MimeBodyPart();
+	
+	
 	if (envioHtml) {
-		message.setContent(mensagem, "text/html; charset=utf-8");
+		corpoEmail.setContent(mensagem, "text/html; charset=utf-8");
 	}else {
-	message.setText(mensagem);
+		corpoEmail.setText(mensagem);
 	}
+	
+	
+	
+	
+	ArrayList<FileInputStream> arquivos = new ArrayList<FileInputStream>();
+	arquivos.add(simuladorDePDF());
+	arquivos.add(simuladorDePDF());
+	arquivos.add(simuladorDePDF());
+	arquivos.add(simuladorDePDF());
+	
+
+	Multipart multipart = new MimeMultipart();
+	multipart.addBodyPart(corpoEmail);
+	
+	int index = 0;
+	for (FileInputStream fileInputStream : arquivos) {
+	
+	/*Parte 2 do e-mail que são os anexos*/
+	MimeBodyPart anexoEmail = new MimeBodyPart();
+	
+	
+	/*Onde é passado o simuladorDePDF você passa o seu arquivo gravado no Banco de Dados*/	
+	anexoEmail.setDataHandler(new DataHandler(new ByteArrayDataSource(fileInputStream, "aplication/pdf")));
+	anexoEmail.setFileName("anexoemail"+index+".pdf");
+	
+	
+	/*Agora vamos juntar as duas partes do e-mail*/
+	multipart.addBodyPart(anexoEmail);
+	index++;
+	
+	}
+	
+	
+	message.setContent(multipart);
 	
 	Transport.send(message);
 	}
 	
 	
 	/*Esse método simula o PDF ou qualquer arquivo que possa ser enviado por anexo no email
-	 * Voe pode pegar o arquivo no banco de dados ou stream, ou em uma pasta
+	 * Voce pode pegar o arquivo no banco de dados ou stream, ou em uma pasta
 	 * Retorna um PDF em branco com o texto do paragrafo*/
 	
 	private FileInputStream simuladorDePDF() throws Exception {
